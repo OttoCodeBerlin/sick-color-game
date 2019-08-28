@@ -6,6 +6,19 @@ http://creativecommons.org/licenses/by/4.0/
 Licensed under Creative Commons: By Attribution 4.0 License
 http://creativecommons.org/licenses/by/4.0/
 
+"Impact Intermezzo" Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
+http://creativecommons.org/licenses/by/4.0/
+
 Explosion source code snippets: Heri Kurnianto 
 https://codepen.io/pochielque/pen/XpwBLb
+
+Rubik Mono One - This Font Software is licensed under the SIL Open Font License, Version 1.1.
+https://scripts.sil.org/OFL_web
+
+jQuery 
+https://jquery.org/license/
+
+
+
 
