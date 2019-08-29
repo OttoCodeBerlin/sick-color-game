@@ -6,7 +6,7 @@ body {
 canvas {
   /* width: 1024;
   height: 768; */
-   border: 1px solid black; 
+   border: none; 
 }
 
 

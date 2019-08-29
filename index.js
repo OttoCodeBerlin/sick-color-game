@@ -1,11 +1,6 @@
+//Variable declaration & Canvas
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
-let externalStop = false
-let startTimer
-let game1Timer
-let game2Timer
-let game3Timer
-let scoreResult
 let startCounter = 0
 let selectCounter = 0
 let playCounter_one = 10
@@ -26,7 +21,8 @@ let playSound1 = new Audio("./audio/play_002.mp3")
 let winSound = new Audio("./audio/win_001.mp3")
 let failSound = new Audio("./audio/fail_001.mp3")
 let levelSound = new Audio("./audio/level_end_001.mp3")
-// Generate color to pick based on RGB ranges
+
+// Generate color to pick based on RGB ranges - to adjust difficulty
 let pickColors_one = generatePickColors(200, 255, 40, 255, 0, 255)
 let pickColors_two = generatePickColors(100, 220, 0, 255, 0, 255)
 let pickColors_three = generatePickColors(120, 200, 0, 255, 0, 255)
@@ -38,7 +34,6 @@ let gnRangeMin = 0
 let gnRangeMax = 255
 let bnRangeMin = 0
 let bnRangeMax = 255
-
 
 //Random color function for color to be picked - Array of 10
 function generatePickColors(rRangeMin, rRangeMax, gRangeMin, gRangeMax, bRangeMin, bRangeMax) {
@@ -163,7 +158,6 @@ canvas.addEventListener('click', function (e) {
         ctx.save()
         animate2sFullscreen(true, hex)
         uniqueColorMode = false
-        game1Timer = Date.now()
         setTimeout(function () {
           startGame1()
           stage = 'play_one'
@@ -205,7 +199,6 @@ canvas.addEventListener('click', function (e) {
         drawLevelFinished('TWO')
         playSound1.pause()
         playSound1.load()
-
         setTimeout(function () {
           levelSound.play()
         }, 0)
@@ -228,14 +221,12 @@ canvas.addEventListener('click', function (e) {
           startGame2()
           stage = 'play_two'
         }, 1500)
-        if (playCounter_two < 10) {//?
-
+        if (playCounter_two < 10) {
           if (pickColors_two.includes(hex)) {
             winSound.load()
             setTimeout(function () {
               winSound.play()
             }, 0)
-
             score_two++
             winScreen(hex)
           } else {
@@ -244,7 +235,6 @@ canvas.addEventListener('click', function (e) {
             setTimeout(function () {
               failSound.play()
             }, 0)
-
             failScreen()
           }
         }
@@ -261,13 +251,11 @@ canvas.addEventListener('click', function (e) {
         ctx.save()
         uniqueColorMode = false
         animate2sFullscreen(false, hex)
-        //drawLevelFinished('THREE')
         playSound1.pause()
         playSound1.load()
         setTimeout(function () {
           levelSound.play()
         }, 0)
-
         winScreenFinal()
         stage = 'reload'
         break
@@ -276,7 +264,6 @@ canvas.addEventListener('click', function (e) {
         setTimeout(function () {
           failSound.play()
         }, 0)
-
         ctx.restore()
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.save()
@@ -292,13 +279,12 @@ canvas.addEventListener('click', function (e) {
           startGame3()
           stage = 'play_three'
         }, 1500)
-        if (playCounter_three < 10) { //?
+        if (playCounter_three < 10) {
           if (pickColors_three.includes(hex)) {
             winSound.load()
             setTimeout(function () {
               winSound.play()
             }, 0)
-
             score_three++
             winScreen(hex)
           } else {
@@ -307,7 +293,6 @@ canvas.addEventListener('click', function (e) {
             setTimeout(function () {
               failSound.play()
             }, 0)
-
             failScreen()
           }
         }
@@ -315,13 +300,8 @@ canvas.addEventListener('click', function (e) {
       break
 
 
-
-
   }
 }, false)
-
-
-//Timer
 
 
 //Helper function for mouse position
@@ -358,7 +338,6 @@ function showCredits() {
   ctx.fillText('Rubik Mono One - This Font Software is licensed under the SIL Open Font License, Version 1.1.', 40, 342)
   ctx.fillText('https://scripts.sil.org/OFL_web', 40, 362)
   ctx.fillText('jQuery https://jquery.org/license/', 40, 402)
-
 }
 
 
@@ -375,7 +354,6 @@ function showInstructions() {
   ctx.fillText('There are three levels...', 40, 372)
   ctx.fillText('and you have 3 false attempts per level.', 40, 422)
   ctx.fillText('Be quick and accurate to maximize your score!', 40, 472)
-
 }
 
 
@@ -398,7 +376,7 @@ function winScreenFinal() {
   ctx.fillText('YOU MADE IT!', 250, 172)
   ctx.fillText('SCORE:' + (score_one + score_two + score_three), 340, 472)
   ctx.font = "80px Rubik Mono One"
-  ctx.fillText('AWESOME', 285, 672)
+  ctx.fillText('AWESOME', 265, 672)
 }
 
 
@@ -421,7 +399,6 @@ function failScreenFinal() {
   ctx.fillText('GAME OVERRRRR', 70, 172)
   ctx.font = "50px Rubik Mono One"
   ctx.fillText('CLICK TO START OVER', 100, 572)
-
 }
 
 //Start screen on startup
@@ -484,7 +461,6 @@ class Square {
 }
 
 
-
 //Generate rectangular pattern - play field
 function generateTiles(xDisplacement, yDisplacement, pickActive) {
 
@@ -530,9 +506,6 @@ function generateRandomColorActiveNew(rRangeMin, rRangeMax, gRangeMin, gRangeMax
 
 
 
-
-
-
 function generateStartScreen() {
   generateTiles(55, 35, false)
   //rotate Tile layout each time
@@ -545,8 +518,6 @@ function generateStartScreen() {
       eval('rect' + i + k + 'c.draw()')
     }
   }
-
-
   setTimeout(function () {
     introSound.play()
   }, 0)
@@ -605,8 +576,6 @@ function startGame1() {
   setTimeout(function () {
     playSound1.play()
   }, 0)
-
-
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_one)
   let pickColorArrayI = []
@@ -615,12 +584,9 @@ function startGame1() {
     pickColorArrayI.push(Math.floor(Math.random() * 9))
     pickColorArrayK.push(Math.floor(Math.random() * 7))
   }
-
-
   for (let timer = 0; timer < playCounter_one; timer++) {
     ctx.rotate(timer / 10 * Math.PI / 180)
     ctx.translate(4, -4.5)
-
     for (let i = 0; i < 9; i++) {
       for (let k = 0; k < 7; k++) {
         if (pickColorArrayI[timer] === i && pickColorArrayK[timer] === k) {
@@ -656,7 +622,6 @@ function startGame2() {
   setTimeout(function () {
     playSound1.play()
   }, 0)
-
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_two)
   let pickColorArrayI = []
@@ -665,7 +630,6 @@ function startGame2() {
     pickColorArrayI.push(Math.floor(Math.random() * 9))
     pickColorArrayK.push(Math.floor(Math.random() * 7))
   }
-
   for (let timer = 0; timer < playCounter_two; timer++) {
     ctx.rotate(timer / 10 * Math.PI / 180)
     ctx.translate(4, -4.5)
@@ -715,7 +679,6 @@ function startGame3() {
     pickColorArrayI.push(Math.floor(Math.random() * 9))
     pickColorArrayK.push(Math.floor(Math.random() * 7))
   }
-
   for (let timer = 0; timer < playCounter_three; timer++) {
     ctx.rotate(timer / 10 * Math.PI / 180)
     ctx.translate(4, -4.5)
@@ -754,14 +717,12 @@ function startGame3() {
 function getStartText(xOffset, yOffset) {
   ctx.fillStyle = "white"
   ctx.font = "50px Rubik Mono One"
-  // ctx.fillText('SICK   COLO R', 114, 65)
   ctx.fillText('SI', 106 + xOffset, 65 + yOffset)
   ctx.fillText('CK', 206 + xOffset, 65 + yOffset)
   ctx.fillText('CO', 306 + xOffset, 65 + yOffset)
   ctx.fillText('LO', 405 + xOffset, 65 + yOffset)
   ctx.fillStyle = "#F36363"
   ctx.fillText('R', 505 + xOffset, 65 + yOffset)
-
   ctx.fillStyle = "white"
   ctx.font = "24px Rubik Mono One"
   ctx.fillText('A VIDEO GAME BY OTTOCODEBERLIN', 114 + xOffset, 159 + yOffset)
@@ -837,17 +798,8 @@ for (var i = 0; i < 500; i++) {
 
 function drawExplosion(uniqueColorMode, hex) {
 
+  //Need to temporarily perform the animation in the background, so the font text remains in the foreground
   ctx.globalCompositeOperation = "destination-over"
-  // if (uniqueColorMode) {
-  //   ctx.globalCompositeOperation = "destination-over"
-  // }
-  // else {
-  //   ctx.globalCompositeOperation = "source-over"
-  // }
-
-
-  // ctx.fillStyle = "rgba(0,0,0,0.15)";
-  //ctx.fillRect(0, 0, W, H);
 
   //Fill the canvas with circles
   for (var j = 0; j < circles.length; j++) {
@@ -856,19 +808,16 @@ function drawExplosion(uniqueColorMode, hex) {
     //Create the circles
     ctx.beginPath();
     ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2, false);
-
     if (uniqueColorMode) {
       ctx.fillStyle = hex
     }
     else {
       ctx.fillStyle = generateRandomColorActiveNew(rnRangeMin, rnRangeMax, gnRangeMin, gnRangeMax, bnRangeMin, bnRangeMax)
     }
-
     ctx.fill();
     c.x += c.vx;
     c.y += c.vy;
     c.radius -= .02;
-
     if (c.radius < 0)
       circles[j] = new create();
   }
