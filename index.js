@@ -21,11 +21,11 @@ let selectInterval
 let startInterval
 let playInterval
 let stage = 'start'
-let introSound = new Audio("../audio/intro_001.mp3")
-let playSound1 = new Audio("../audio/play_002.mp3")
-let winSound = new Audio("../audio/win_001.mp3")
-let failSound = new Audio("../audio/fail_001.mp3")
-let levelSound = new Audio("../audio/level_end_001.mp3")
+let introSound = new Audio("./audio/intro_001.mp3")
+let playSound1 = new Audio("./audio/play_002.mp3")
+let winSound = new Audio("./audio/win_001.mp3")
+let failSound = new Audio("./audio/fail_001.mp3")
+let levelSound = new Audio("./audio/level_end_001.mp3")
 // Generate color to pick based on RGB ranges
 let pickColors_one = generatePickColors(200, 255, 40, 255, 0, 255)
 let pickColors_two = generatePickColors(100, 220, 0, 255, 0, 255)
