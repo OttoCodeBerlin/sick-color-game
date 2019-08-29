@@ -1,5 +1,11 @@
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
+let externalStop = false
+let startTimer
+let game1Timer
+let game2Timer
+let game3Timer
+let scoreResult
 let startCounter = 0
 let selectCounter = 0
 let playCounter_one = 10
@@ -21,27 +27,43 @@ let winSound = new Audio("../audio/win_001.mp3")
 let failSound = new Audio("../audio/fail_001.mp3")
 let levelSound = new Audio("../audio/level_end_001.mp3")
 // Generate color to pick based on RGB ranges
-let pickColors_one = generatePickColors(225, 255, 0, 200, 0, 200)
-//let pickColors_two = generatePickColors(5592405, 1118481)
+let pickColors_one = generatePickColors(200, 255, 40, 255, 0, 255)
+let pickColors_two = generatePickColors(100, 220, 0, 255, 0, 255)
+let pickColors_three = generatePickColors(120, 200, 0, 255, 0, 255)
 
-// Get color by mouseover function
-// $('canvas').mousemove(function (e) {
-//   let pos = findPos(this)
-//   let x = e.pageX - pos.x
-//   let y = e.pageY - pos.y
-//   let coord = "x=" + x + ", y=" + y
-//   let c = this.getContext('2d')
-//   let p = c.getImageData(x, y, 1, 1).data
-//   let hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6)
-//   $('#status').html(coord + "<br>" + hex)
-//   let mouseValues = { x, y, hex }
-//   return mouseValues
-//   console.log(mouseValues)
-// })
+//Select RGB color ranges for play field pattern
+let rnRangeMin = 0
+let rnRangeMax = 50
+let gnRangeMin = 0
+let gnRangeMax = 255
+let bnRangeMin = 0
+let bnRangeMax = 255
+
+
+//Random color function for color to be picked - Array of 10
+function generatePickColors(rRangeMin, rRangeMax, gRangeMin, gRangeMax, bRangeMin, bRangeMax) {
+  let pickColorArr = []
+  for (i = 0; i < 10; i++) {
+    let r = Math.floor(Math.random() * (rRangeMax - rRangeMin) + rRangeMin)
+    let g = Math.floor(Math.random() * (bRangeMax - bRangeMin) + bRangeMin)
+    let b = Math.floor(Math.random() * (gRangeMax - gRangeMin) + gRangeMin)
+    let pickCol = ((r << 16) | (g << 8) | b).toString(16)
+    if (pickCol.length === 3) {
+      pickCol = '#000' + pickCol
+    } else if (pickCol.length === 4) {
+      pickCol = '#00' + pickCol
+    } else if (pickCol.length === 5) {
+      pickCol = '#0' + pickCol
+    } else {
+      pickCol = '#' + pickCol
+    }
+    pickColorArr.push(pickCol)
+  }
+  return pickColorArr
+}
 
 //Mouse click function including stage switch and color retrieving 
 canvas.addEventListener('click', function (e) {
-  console.log(stage)
 
   let pos = findPos(this)
   let x = e.pageX - pos.x
@@ -56,11 +78,19 @@ canvas.addEventListener('click', function (e) {
 
   switch (stage) {
 
+    case 'reload':
+      window.location.reload();
+      break
+
     case 'start':
+      stage = 'play' //change here to 'ready' to include select screen
+      // startCounter = 0
+      ctx.restore()
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.save()
       generateStartScreen()
-      stage = 'play' //change here to 'ready' to include select screen
       break
+
     case 'ready':
       //User click on START GAME
       if (160 < x && x < 430 && 420 < y && y < 490) {
@@ -69,21 +99,41 @@ canvas.addEventListener('click', function (e) {
         ctx.save()
         generateSelectScreen()
       }
-      //User click on INSTRUCTIONS
-      //User click on CREDITS
-
       break
-    case 'play':
-      ctx.restore()
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.save()
-      drawLevelOne()
-      animate2sFullscreen()
-      setTimeout(function () {
-        startGame1()
-        stage = 'play_one'
-      }, 1500);
 
+
+    case 'play':
+      if (160 < x && x < 430 && 420 < y && y < 490) { //User clicked "Start Game"
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        drawLevelOne()
+        animate2sFullscreen()
+        setTimeout(function () {
+          startGame1()
+          stage = 'play_one'
+        }, 1500);
+      }
+      if (150 < x && x < 400 && 535 < y && y < 590) { //User clicked "Instructions"
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        animate1sFullscreen(true, '#FAB2F5')
+        setTimeout(function () {
+          showInstructions()
+        }, 1000);
+        stage = 'reload'
+      }
+      if (145 < x && x < 300 && 640 < y && y < 680) { //User clicked "Credits"
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        animate1sFullscreen(true, '#B2FAE6')
+        setTimeout(function () {
+          showCredits()
+        }, 1000);
+        stage = 'reload'
+      }
       break
 
     case 'play_one':
@@ -92,37 +142,45 @@ canvas.addEventListener('click', function (e) {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.save()
         uniqueColorMode = false
-        animate2sFullscreen()
+        animate2sFullscreen(false, hex)
         stage = 'play_two'
         drawLevelFinished('ONE')
+        playSound1.pause()
+        playSound1.load()
         levelSound.play()
         break
-
-      } else if (failsLeft_one <= 0) {
-        stage = 'fail'
-
-      }
-
-      ctx.restore()
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.save()
-      animate2sFullscreen(true, hex)
-      uniqueColorMode = true
-      setTimeout(function () {
-        startGame1()
-        stage = 'play_one'
-      }, 1500)
-
-      if (pickColors_one.includes(hex)) {
-        winSound.play()
-        score_one++
-        winScreen(hex)
-      } else {
-        failsLeft_one--
+      } else if (failsLeft_one <= 0 && (!pickColors_one.includes(hex))) {
+        stage = 'reload'
         failSound.play()
-        failScreen()
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        failScreenFinal()
       }
+      if (stage != 'reload') {
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        animate2sFullscreen(true, hex)
+        uniqueColorMode = false
+        game1Timer = Date.now()
+        setTimeout(function () {
+          startGame1()
+          stage = 'play_one'
+        }, 1500)
 
+        if (pickColors_one.includes(hex)) {
+          winSound.load()
+          winSound.play()
+          score_one++
+          winScreen(hex)
+        } else {
+          failsLeft_one--
+          failSound.load()
+          failSound.play()
+          failScreen()
+        }
+      }
       break
 
     case 'fail':
@@ -131,89 +189,115 @@ canvas.addEventListener('click', function (e) {
       break
 
     case 'play_two':
-
       if (playCounter_two === 0) {
-
         ctx.restore()
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.save()
         uniqueColorMode = false
-        animate2sFullscreen()
+        animate2sFullscreen(false, hex)
         stage = 'play_three'
         drawLevelFinished('TWO')
+        playSound1.pause()
+        playSound1.load()
         levelSound.play()
-
         break
-
-      } else if (failsLeft_two <= 0) {
-        stage = 'fail'
+      } else if (failsLeft_two <= 0 && (!pickColors_two.includes(hex))) {
+        stage = 'reload'
+        failSound.play()
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        failScreenFinal()
       }
-      ctx.restore()
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.save()
+      if (stage != 'reload') {
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        animate2sFullscreen(true, hex)
+        uniqueColorMode = false
+        setTimeout(function () {
+          startGame2()
+          stage = 'play_two'
+        }, 1500)
+        if (playCounter_two < 10) {//?
 
-      animate2sFullscreen(true, hex)
-      uniqueColorMode = true
-      setTimeout(function () {
-        startGame2()
-        stage = 'play_two'
-      }, 1500)
-      if (playCounter_two < 10) {
-        if (pickColors_one.includes(hex)) {
-          winSound.play()
-          score_two++
-          winScreen(hex)
-        } else {
-          failsLeft_two--
-          failSound.play()
-          failScreen()
+          if (pickColors_two.includes(hex)) {
+            winSound.load()
+            winSound.play()
+            score_two++
+            winScreen(hex)
+          } else {
+            failsLeft_two--
+            failSound.load()
+            failSound.play()
+            failScreen()
+          }
         }
       }
       break
+
+
 
 
     case 'play_three':
       if (playCounter_three === 0) {
-        uniqueColorMode = false
-        stage = 'win'
-        drawLevelFinished('THREE')
-        levelSound.play()
         ctx.restore()
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.save()
+        uniqueColorMode = false
+        animate2sFullscreen(false, hex)
+        //drawLevelFinished('THREE')
+        playSound1.pause()
+        playSound1.load()
+        levelSound.play()
+        winScreenFinal()
+        stage = 'reload'
         break
-
       } else if (failsLeft_three <= 0) {
-        stage = 'fail'
+        stage = 'reload'
+        failSound.play()
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        failScreenFinal()
       }
-      ctx.restore()
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.save()
-
-      animate2sFullscreen(true, hex)
-      uniqueColorMode = true
-      setTimeout(function () {
-        startGame3()
-        stage = 'play_three'
-      }, 1500)
-      if (playCounter_three < 10) {
-        if (pickColors_one.includes(hex)) {
-          winSound.play()
-          score_three++
-          winScreen(hex)
-        } else {
-          failsLeft_three--
-          failSound.play()
-          failScreen()
+      if (stage != 'reload') {
+        ctx.restore()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        animate2sFullscreen(true, hex)
+        uniqueColorMode = false
+        setTimeout(function () {
+          startGame3()
+          stage = 'play_three'
+        }, 1500)
+        if (playCounter_three < 10) { //?
+          if (pickColors_three.includes(hex)) {
+            winSound.load()
+            winSound.play()
+            score_three++
+            winScreen(hex)
+          } else {
+            failsLeft_three--
+            failSound.load()
+            failSound.play()
+            failScreen()
+          }
         }
       }
       break
 
 
 
-  }
-}, false);
 
+  }
+}, false)
+
+
+//Timer
+
+
+//Helper function for mouse position
 function findPos(obj) {
   let curleft = 0, curtop = 0
   if (obj.offsetParent) {
@@ -226,8 +310,45 @@ function findPos(obj) {
   return undefined
 }
 
+//Convert RGB to hex
 function rgbToHex(r, g, b) {
   return ((r << 16) | (g << 8) | b).toString(16);
+}
+
+
+//Show credits
+function showCredits() {
+  ctx.fillStyle = "black"
+  ctx.font = "50px Rubik Mono One"
+  ctx.fillText('Credits', 330, 72)
+  ctx.font = "12px Rubik Mono One"
+  ctx.fillText('"Tyrant" Kevin MacLeod (incompetech.com)', 40, 172)
+  ctx.fillText('"Professor Umlaut" Kevin MacLeod (incompetech.com)', 40, 192)
+  ctx.fillText('"Impact Intermezzo" Kevin MacLeod (incompetech.com)', 40, 212)
+  ctx.fillText('Licensed under Creative Commons: By Attribution 4.0 License', 40, 232)
+  ctx.fillText('http://creativecommons.org/licenses/by/4.0/', 40, 252)
+  ctx.fillText('Explosion source code snippets: Heri Kurnianto https://codepen.io/pochielque/pen/XpwBLb', 40, 292)
+  ctx.fillText('Rubik Mono One - This Font Software is licensed under the SIL Open Font License, Version 1.1.', 40, 342)
+  ctx.fillText('https://scripts.sil.org/OFL_web', 40, 362)
+  ctx.fillText('jQuery https://jquery.org/license/', 40, 402)
+
+}
+
+
+//Show instructions
+function showInstructions() {
+  ctx.fillStyle = "black"
+  ctx.font = "50px Rubik Mono One"
+  ctx.fillText('Instructions', 240, 72)
+  ctx.font = "24px Rubik Mono One"
+  ctx.fillText('Look for the color which does not fit...', 40, 172)
+  ctx.fillText('in each board of 63 tiles.', 40, 222)
+  ctx.fillText('CLICK or TOUCH the color.', 40, 272)
+  ctx.fillText('The click color might be even in the corners!', 40, 322)
+  ctx.fillText('There are three levels...', 40, 372)
+  ctx.fillText('and you have 3 false attempts per level.', 40, 422)
+  ctx.fillText('Be quick and accurate to maximize your score!', 40, 472)
+
 }
 
 
@@ -237,10 +358,20 @@ function winScreen(hex) {
   ctx.font = "50px Rubik Mono One"
   ctx.fillText('PERFECT!', 330, 72)
   ctx.fillStyle = hex
-  ctx.fillText(' ' + hex + '  it is.', 185, 172)
+  ctx.fillText(' ' + hex + '  it is.', 175, 172)
   ctx.fillStyle = "black"
   ctx.font = "80px Rubik Mono One"
   ctx.fillText('SCORE:' + (score_one + score_two + score_three), 250, 672)
+}
+
+//Final screen
+function winScreenFinal() {
+  ctx.fillStyle = "#F36363"
+  ctx.font = "50px Rubik Mono One"
+  ctx.fillText('YOU MADE IT!', 250, 172)
+  ctx.fillText('SCORE:' + (score_one + score_two + score_three), 340, 472)
+  ctx.font = "80px Rubik Mono One"
+  ctx.fillText('AWESOME', 285, 672)
 }
 
 
@@ -255,6 +386,17 @@ function failScreen() {
   ctx.fillText('IDEA!', 120, 672)
 }
 
+
+//Final fail screen
+function failScreenFinal() {
+  ctx.fillStyle = "black"
+  ctx.font = "80px Rubik Mono One"
+  ctx.fillText('GAME OVERRRRR', 70, 172)
+  ctx.font = "50px Rubik Mono One"
+  ctx.fillText('CLICK TO START OVER', 100, 572)
+
+}
+
 //Start screen on startup
 window.onload = function () {
   ctx.fillStyle = "black"
@@ -267,7 +409,7 @@ window.onload = function () {
 function drawLevelFinished(levelText) {
   ctx.fillStyle = "black"
   ctx.font = "50px Rubik Mono One"
-  ctx.fillText('FINISHED LEVEL ' + levelText, 200, 372)
+  ctx.fillText('FINISHED LEVEL ' + levelText, 120, 372)
   ctx.font = "36px Rubik Mono One"
   ctx.fillText('CLICK TO CONTINUE', 240, 572)
 }
@@ -276,7 +418,7 @@ function drawLevelFinished(levelText) {
 function drawLevelOne() {
   ctx.fillStyle = "black"
   ctx.font = "60px Rubik Mono One"
-  ctx.fillText('STARTING LEVEL ONE', 30, 372)
+  ctx.fillText('STARTING LEVEL ONE', 50, 372)
   ctx.font = "50px Rubik Mono One"
   ctx.fillText('HAVE FUN', 350, 572)
 }
@@ -295,19 +437,20 @@ class Square {
   }
 
   draw(colorInput) {
+    //select if color is external parameter or own property
     if (colorInput) {
       ctx.fillStyle = colorInput
     } else {
       ctx.fillStyle = this.color
     }
-
+    //Draw rounded rectangles
     //ctx.fillRect(this.x, this.y, this.width, this.height)
     ctx.beginPath()
-    ctx.moveTo(this.x + this.width, this.y + this.width);
-    ctx.arcTo(this.x, this.y + this.width, this.x, this.y, 10);
-    ctx.arcTo(this.x, this.y, this.x + this.width, this.y, 10);
-    ctx.arcTo(this.x + this.width, this.y, this.x + this.width, this.y + this.width, 10);
-    ctx.arcTo(this.x + this.width, this.y + this.width, this.x, this.y + this.width, 10);
+    ctx.moveTo(this.x + this.width, this.y + this.width)
+    ctx.arcTo(this.x, this.y + this.width, this.x, this.y, 10)
+    ctx.arcTo(this.x, this.y, this.x + this.width, this.y, 10)
+    ctx.arcTo(this.x + this.width, this.y, this.x + this.width, this.y + this.width, 10)
+    ctx.arcTo(this.x + this.width, this.y + this.width, this.x, this.y + this.width, 10)
     ctx.fill()
     ctx.closePath()
   }
@@ -320,7 +463,7 @@ function generateTiles(xDisplacement, yDisplacement, pickActive) {
 
   for (let i = 0; i < 9; i++) {
     for (let k = 0; k < 7; k++) {
-      eval('rect' + i + k + 'c = new Square(99, 99, generateRandomColorActive(), i * 100+xDisplacement, k * 100+yDisplacement)')
+      eval('rect' + i + k + 'c = new Square(99, 99, generateRandomColorActiveNew(rnRangeMin, rnRangeMax, gnRangeMin, gnRangeMax, bnRangeMin, bnRangeMax), i * 100+xDisplacement, k * 100+yDisplacement)')
     }
   }
 }
@@ -329,74 +472,36 @@ function generateTileStack(xDisplacement, yDisplacement, number) {
   for (let h = 0; h < number; h++) {
     for (let i = 0; i < 9; i++) {
       for (let k = 0; k < 7; k++) {
-        eval('rect' + h + i + k + 'c = new Square(99, 99, generateRandomColorActive(), i * 100+xDisplacement, k * 100+yDisplacement)')
+        eval('rect' + h + i + k + 'c = new Square(99, 99, generateRandomColorActiveNew(rnRangeMin, rnRangeMax, gnRangeMin, gnRangeMax, bnRangeMin, bnRangeMax), i * 100+xDisplacement, k * 100+yDisplacement)')
       }
     }
   }
 }
 
 
-//Color to be picked - Array of 10
-//cutoffHex: range border for color range in decimal values (i.e. #555555 for current color tile scheme, max 16777215=#FFFFFF)
-//rangeHex: width of color range in decimal values (e.g. 1118481 for #111111)
-function generatePickColors(rRangeMin, rRangeMax, gRangeMin, gRangeMax, bRangeMin, bRangeMax) {
-  let pickColorArr = []
-  for (i = 0; i < 10; i++) {
-    let r = Math.floor(Math.random() * (rRangeMax - rRangeMin) + rRangeMin)
-    let g = Math.floor(Math.random() * (bRangeMax - bRangeMin) + bRangeMin)
-    let b = Math.floor(Math.random() * (gRangeMax - gRangeMin) + gRangeMin)
-    pickColorArr.push('#' + ((r << 16) | (g << 8) | b).toString(16))
-  }
-  return pickColorArr
-}
 
-//
-function generateRandomColorActive() {
-  let randomColor = Math.floor(Math.random() * 16777215 / 3).toString(16)
-  if (randomColor.length === 3) {
-    return '#000' + randomColor
-  } else if (randomColor.length === 4) {
-    return '#00' + randomColor
-  } else if (randomColor.length === 5) {
-    return '#0' + randomColor
+//Random color function for main game board
+function generateRandomColorActiveNew(rRangeMin, rRangeMax, gRangeMin, gRangeMax, bRangeMin, bRangeMax) {
+
+  let r = Math.floor(Math.random() * (rRangeMax - rRangeMin) + rRangeMin)
+  let g = Math.floor(Math.random() * (bRangeMax - bRangeMin) + bRangeMin)
+  let b = Math.floor(Math.random() * (gRangeMax - gRangeMin) + gRangeMin)
+  pickCol = ((r << 16) | (g << 8) | b).toString(16)
+  if (pickCol.length === 3) {
+    return '#000' + pickCol
+  } else if (pickCol.length === 4) {
+    return '#00' + pickCol
+  } else if (pickCol.length === 5) {
+    return '#0' + pickCol
   } else {
-    return '#' + randomColor
+    return '#' + pickCol
   }
+  return pickCol
 }
 
-//Generate position of to-pick tile
-function generatePickIndex(number) {
-  //Create arrays of rows and columns with unique values
-  let randomIArray = []
-  for (let i = 0; i < 9; ++i) {
-    randomIArray[i] = i
-  }
-  let randomKArray = []
-  for (let i = 0; i < 7; ++i) {
-    randomKArray[i] = i
-  }
-  let randomHArray = []
-  for (let i = 0; i < number; ++i) {
-    randomHArray[i] = i
-  }
 
-  function shuffle(array) {
-    var tmp, current, top = array.length;
-    if (top) while (--top) {
-      current = Math.floor(Math.random() * (top + 1));
-      tmp = array[current];
-      array[current] = array[top];
-      array[top] = tmp;
-    }
-    return array;
-  }
 
-  randomIArray = shuffle(randomIArray)
-  randomKArray = shuffle(randomKArray)
-  randomHArray = shuffle(randomHArray)
 
-  return { randomHArray, randomIArray, randomKArray }
-}
 
 
 
@@ -413,8 +518,8 @@ function generateStartScreen() {
       eval('rect' + i + k + 'c.draw()')
     }
   }
-  //stage = 'ready'
-  //introSound.play()
+
+  introSound.play()
   //draw it only 10 times
   startCounter++
   startInterval = setInterval(function () {
@@ -466,16 +571,18 @@ function generateSelectScreen() {
 
 
 function startGame1() {
-  //introSound.pause()
-  //playSound1.play()
+  introSound.pause()
+  playSound1.play()
+
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_one)
   let pickColorArrayI = []
   let pickColorArrayK = []
   for (let i = 0; i < playCounter_one; i++) {
-    pickColorArrayI.push(Math.floor(Math.random() * 10))
+    pickColorArrayI.push(Math.floor(Math.random() * 9))
     pickColorArrayK.push(Math.floor(Math.random() * 7))
   }
+
 
   for (let timer = 0; timer < playCounter_one; timer++) {
     ctx.rotate(timer / 10 * Math.PI / 180)
@@ -497,6 +604,10 @@ function startGame1() {
   ctx.font = "50px Rubik Mono One"
   ctx.fillText(score_one, 82, 125)
   ctx.font = "20px Rubik Mono One"
+  ctx.fillText('LEVEL', 862, 65)
+  ctx.font = "50px Rubik Mono One"
+  ctx.fillText('1', 882, 125)
+  ctx.font = "20px Rubik Mono One"
   ctx.fillStyle = "#F36363"
   ctx.fillText('FAILS', 62, 660)
   ctx.fillText('LEFT', 70, 675)
@@ -508,14 +619,14 @@ function startGame1() {
 
 
 function startGame2() {
-  //introSound.pause()
-  //playSound1.play()
+  playSound1.pause()
+  playSound1.play()
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_two)
   let pickColorArrayI = []
   let pickColorArrayK = []
   for (let i = 0; i < playCounter_two; i++) {
-    pickColorArrayI.push(Math.floor(Math.random() * 10))
+    pickColorArrayI.push(Math.floor(Math.random() * 9))
     pickColorArrayK.push(Math.floor(Math.random() * 7))
   }
 
@@ -526,7 +637,7 @@ function startGame2() {
     for (let i = 0; i < 9; i++) {
       for (let k = 0; k < 7; k++) {
         if (pickColorArrayI[timer] === i && pickColorArrayK[timer] === k) {
-          eval('rect' + timer + i + k + 'c.draw("' + pickColors_one[i] + '")')
+          eval('rect' + timer + i + k + 'c.draw("' + pickColors_two[i] + '")')
         } else {
           eval('rect' + timer + i + k + 'c.draw()')
         }
@@ -538,7 +649,11 @@ function startGame2() {
     ctx.font = "20px Rubik Mono One"
     ctx.fillText('SCORE', 62, 65)
     ctx.font = "50px Rubik Mono One"
-    ctx.fillText(score_two, 82, 125)
+    ctx.fillText(score_one + score_two, 72, 125)
+    ctx.font = "20px Rubik Mono One"
+    ctx.fillText('LEVEL', 862, 65)
+    ctx.font = "50px Rubik Mono One"
+    ctx.fillText('2', 882, 125)
     ctx.font = "20px Rubik Mono One"
     ctx.fillStyle = "#F36363"
     ctx.fillText('FAILS', 62, 660)
@@ -552,14 +667,14 @@ function startGame2() {
 
 
 function startGame3() {
-  //introSound.pause()
-  //playSound1.play()
+  playSound1.pause()
+  playSound1.play()
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_three)
   let pickColorArrayI = []
   let pickColorArrayK = []
   for (let i = 0; i < playCounter_three; i++) {
-    pickColorArrayI.push(Math.floor(Math.random() * 10))
+    pickColorArrayI.push(Math.floor(Math.random() * 9))
     pickColorArrayK.push(Math.floor(Math.random() * 7))
   }
 
@@ -570,7 +685,7 @@ function startGame3() {
     for (let i = 0; i < 9; i++) {
       for (let k = 0; k < 7; k++) {
         if (pickColorArrayI[timer] === i && pickColorArrayK[timer] === k) {
-          eval('rect' + timer + i + k + 'c.draw("' + pickColors_one[i] + '")')
+          eval('rect' + timer + i + k + 'c.draw("' + pickColors_three[i] + '")')
         } else {
           eval('rect' + timer + i + k + 'c.draw()')
         }
@@ -582,7 +697,11 @@ function startGame3() {
     ctx.font = "20px Rubik Mono One"
     ctx.fillText('SCORE', 62, 65)
     ctx.font = "50px Rubik Mono One"
-    ctx.fillText(score_three, 82, 125)
+    ctx.fillText(score_one + score_two + score_three, 72, 125)
+    ctx.font = "20px Rubik Mono One"
+    ctx.fillText('LEVEL', 862, 65)
+    ctx.font = "50px Rubik Mono One"
+    ctx.fillText('3', 882, 125)
     ctx.font = "20px Rubik Mono One"
     ctx.fillStyle = "#F36363"
     ctx.fillText('FAILS', 62, 660)
@@ -704,11 +823,10 @@ function drawExplosion(uniqueColorMode, hex) {
       ctx.fillStyle = hex
     }
     else {
-      ctx.fillStyle = generateRandomColorActive()
+      ctx.fillStyle = generateRandomColorActiveNew(rnRangeMin, rnRangeMax, gnRangeMin, gnRangeMax, bnRangeMin, bnRangeMax)
     }
 
     ctx.fill();
-
     c.x += c.vx;
     c.y += c.vy;
     c.radius -= .02;
@@ -719,7 +837,7 @@ function drawExplosion(uniqueColorMode, hex) {
   ctx.globalCompositeOperation = "source-over"
 }
 
-
+//Short animation
 function animate1sFullscreen(uniqueColorMode, hex) {
   let start = Date.now()
   function loop() {
@@ -731,6 +849,7 @@ function animate1sFullscreen(uniqueColorMode, hex) {
   loop()
 }
 
+//Long animation
 function animate2sFullscreen(uniqueColorMode, hex) {
   let start = Date.now()
   function loop() {
@@ -741,12 +860,3 @@ function animate2sFullscreen(uniqueColorMode, hex) {
   }
   loop()
 }
-
-
-
-//   document.onkeyup = e => {
-//     car.speedX = 0
-//     car.speedY = 0
-//   }
-// }
-
