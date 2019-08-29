@@ -171,13 +171,19 @@ canvas.addEventListener('click', function (e) {
 
         if (pickColors_one.includes(hex)) {
           winSound.load()
-          winSound.play()
+          setTimeout(function () {
+            winSound.play()
+          }, 0)
+
           score_one++
           winScreen(hex)
         } else {
           failsLeft_one--
           failSound.load()
-          failSound.play()
+          setTimeout(function () {
+            failSound.play()
+          }, 0)
+
           failScreen()
         }
       }
@@ -199,7 +205,10 @@ canvas.addEventListener('click', function (e) {
         drawLevelFinished('TWO')
         playSound1.pause()
         playSound1.load()
-        levelSound.play()
+
+        setTimeout(function () {
+          levelSound.play()
+        }, 0)
         break
       } else if (failsLeft_two <= 0 && (!pickColors_two.includes(hex))) {
         stage = 'reload'
@@ -223,13 +232,19 @@ canvas.addEventListener('click', function (e) {
 
           if (pickColors_two.includes(hex)) {
             winSound.load()
-            winSound.play()
+            setTimeout(function () {
+              winSound.play()
+            }, 0)
+
             score_two++
             winScreen(hex)
           } else {
             failsLeft_two--
             failSound.load()
-            failSound.play()
+            setTimeout(function () {
+              failSound.play()
+            }, 0)
+
             failScreen()
           }
         }
@@ -249,13 +264,19 @@ canvas.addEventListener('click', function (e) {
         //drawLevelFinished('THREE')
         playSound1.pause()
         playSound1.load()
-        levelSound.play()
+        setTimeout(function () {
+          levelSound.play()
+        }, 0)
+
         winScreenFinal()
         stage = 'reload'
         break
       } else if (failsLeft_three <= 0) {
         stage = 'reload'
-        failSound.play()
+        setTimeout(function () {
+          failSound.play()
+        }, 0)
+
         ctx.restore()
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.save()
@@ -274,13 +295,19 @@ canvas.addEventListener('click', function (e) {
         if (playCounter_three < 10) { //?
           if (pickColors_three.includes(hex)) {
             winSound.load()
-            winSound.play()
+            setTimeout(function () {
+              winSound.play()
+            }, 0)
+
             score_three++
             winScreen(hex)
           } else {
             failsLeft_three--
             failSound.load()
-            failSound.play()
+            setTimeout(function () {
+              failSound.play()
+            }, 0)
+
             failScreen()
           }
         }
@@ -519,7 +546,10 @@ function generateStartScreen() {
     }
   }
 
-  introSound.play()
+
+  setTimeout(function () {
+    introSound.play()
+  }, 0)
   //draw it only 10 times
   startCounter++
   startInterval = setInterval(function () {
@@ -572,7 +602,10 @@ function generateSelectScreen() {
 
 function startGame1() {
   introSound.pause()
-  playSound1.play()
+  setTimeout(function () {
+    playSound1.play()
+  }, 0)
+
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_one)
@@ -620,7 +653,10 @@ function startGame1() {
 
 function startGame2() {
   playSound1.pause()
-  playSound1.play()
+  setTimeout(function () {
+    playSound1.play()
+  }, 0)
+
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_two)
   let pickColorArrayI = []
@@ -668,7 +704,9 @@ function startGame2() {
 
 function startGame3() {
   playSound1.pause()
-  playSound1.play()
+  setTimeout(function () {
+    playSound1.play()
+  }, 0)
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   generateTileStack(55, 35, playCounter_three)
   let pickColorArrayI = []
