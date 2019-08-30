@@ -24,8 +24,8 @@ let levelSound = new Audio("./audio/level_end_001.mp3")
 
 // Generate color to pick based on RGB ranges - to adjust difficulty
 let pickColors_one = generatePickColors(200, 255, 40, 255, 0, 255)
-let pickColors_two = generatePickColors(100, 220, 0, 255, 0, 255)
-let pickColors_three = generatePickColors(120, 200, 0, 255, 0, 255)
+let pickColors_two = generatePickColors(100, 220, 0, 255, 60, 255)
+let pickColors_three = generatePickColors(120, 166, 0, 255, 0, 255)
 
 //Select RGB color ranges for play field pattern
 let rnRangeMin = 0
@@ -162,13 +162,11 @@ canvas.addEventListener('click', function (e) {
           startGame1()
           stage = 'play_one'
         }, 1500)
-
         if (pickColors_one.includes(hex)) {
           winSound.load()
           setTimeout(function () {
             winSound.play()
           }, 0)
-
           score_one++
           winScreen(hex)
         } else {
@@ -177,7 +175,6 @@ canvas.addEventListener('click', function (e) {
           setTimeout(function () {
             failSound.play()
           }, 0)
-
           failScreen()
         }
       }
@@ -259,7 +256,7 @@ canvas.addEventListener('click', function (e) {
         winScreenFinal()
         stage = 'reload'
         break
-      } else if (failsLeft_three <= 0) {
+      } else if (failsLeft_three <= 0 && (!pickColors_three.includes(hex))) {
         stage = 'reload'
         setTimeout(function () {
           failSound.play()
@@ -338,6 +335,8 @@ function showCredits() {
   ctx.fillText('Rubik Mono One - This Font Software is licensed under the SIL Open Font License, Version 1.1.', 40, 342)
   ctx.fillText('https://scripts.sil.org/OFL_web', 40, 362)
   ctx.fillText('jQuery https://jquery.org/license/', 40, 402)
+  ctx.font = "24px Rubik Mono One"
+  ctx.fillText('MIT License Copyright (c) 2019 OttoCodeBerlin', 40, 502)
 }
 
 
@@ -349,11 +348,11 @@ function showInstructions() {
   ctx.font = "24px Rubik Mono One"
   ctx.fillText('Look for the color which does not fit...', 40, 172)
   ctx.fillText('in each board of 63 tiles.', 40, 222)
-  ctx.fillText('CLICK or TOUCH the color.', 40, 272)
-  ctx.fillText('The click color might be even in the corners!', 40, 322)
-  ctx.fillText('There are three levels...', 40, 372)
-  ctx.fillText('and you have 3 false attempts per level.', 40, 422)
-  ctx.fillText('Be quick and accurate to maximize your score!', 40, 472)
+  ctx.fillText('CLICK or TOUCH the color.', 40, 322)
+  ctx.fillText('The click color might be even in the corners!', 40, 422)
+  ctx.fillText('There are three levels...', 40, 522)
+  ctx.fillText('and you have 3 false attempts per level.', 40, 572)
+  ctx.fillText('Be quick and accurate to maximize your score!', 40, 672)
 }
 
 
